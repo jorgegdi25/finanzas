@@ -1,0 +1,501 @@
+PRD — Web App Personal de Control Financiero – JGM
+
+Tipo: Web App privada (uso personal)Usuario: Jorge González MejíaDistribución: Web propia (PWA opcional, sin App Store / Play Store)Backend: SupabaseBase de datos: PostgreSQL (Supabase)Monedas soportadas: COP (base), USD, EUR
+
+1. Problema que resuelve
+
+Actualmente:
+
+Los ingresos, gastos, deudas y cobros están dispersos.
+
+No hay claridad inmediata de:
+
+cuánto dinero hay realmente,
+
+cuánto falta por pagar,
+
+cuánto falta por cobrar,
+
+si el flujo mensual alcanza.
+
+El control de proyectos y pagos parciales se hace de forma manual.
+
+La existencia de ingresos en USD y EUR dificulta la lectura real del flujo financiero.
+
+Este sistema centraliza toda la información financiera y permite tomar decisiones basadas en datos reales, consolidados y comparables.
+
+2. Objetivo del producto
+
+Crear una web app privada que permita:
+
+Controlar ingresos, egresos y transferencias en múltiples monedas.
+
+Visualizar flujo de caja actual y proyectado en una moneda base.
+
+Gestionar deudas con simulación realista (bola de nieve / avalancha).
+
+Gestionar clientes, proyectos y cuentas de cobro con pagos parciales.
+
+Registrar movimientos mediante foto o pantallazo (OCR asistido).
+
+Mantener respaldo, orden y tranquilidad financiera.
+
+3. Principios clave de diseño
+
+Rápido: registrar un gasto en menos de 10 segundos.
+
+Claro: una sola pantalla debe responder “¿cómo voy?”.
+
+Seguro: acceso exclusivo del propietario.
+
+Sin ruido: solo información útil para decidir.
+
+Consistente: mismos datos generan siempre los mismos resultados.
+
+Escalable: hoy personal, mañana ampliable.
+
+4. Arquitectura general
+
+Frontend (Next.js + Tailwind) conectado directamente a Supabase, que provee:
+
+Base de datos PostgreSQL
+
+Autenticación segura
+
+Storage privado
+
+API automática
+
+5. Reglas financieras globales (OBLIGATORIAS)
+
+5.1 Moneda y montos
+
+Moneda base del sistema: COP.
+
+Monedas soportadas para transacciones: COP, USD, EUR.
+
+Todos los valores monetarios se almacenan como:
+
+NUMERIC(14,2)
+
+5.2 Manejo multimoneda
+
+Cada transacción debe almacenar:
+
+Monto original
+
+Moneda original (COP / USD / EUR)
+
+Tipo de cambio usado
+
+Monto convertido a COP
+
+El histórico nunca se recalcula si cambia el tipo de cambio.
+
+5.3 Tasas de interés
+
+Cada deuda debe tener obligatoriamente:
+
+interest_rate_value (decimal, ej: 0.26)
+
+interest_rate_type (EA | EM)
+
+Nunca almacenar tasas como enteros (ej: 26).
+
+5.4 Conversión de tasa EA a mensual
+
+Si la tasa es EA, se convierte a mensual con:
+
+i_m = (1 + i_EA)^(1/12) - 1
+
+6. Módulos funcionales
+
+MÓDULO 1 — Autenticación y seguridad
+
+Login con email y contraseña (Supabase Auth).
+
+Contraseñas cifradas.
+
+Sesión persistente.
+
+Logout manual.
+
+Acceso restringido a un solo usuario.
+
+MÓDULO 2 — Cuentas
+
+Representa dónde está el dinero.
+
+Campos:
+
+Nombre
+
+Tipo (banco / efectivo / billetera)
+
+Saldo inicial
+
+Moneda principal de la cuenta
+
+Estado (activo / inactivo)
+
+MÓDULO 3 — Movimientos financieros
+
+Tipos:
+
+Ingreso
+
+Egreso
+
+Transferencia
+
+Campos obligatorios:
+
+Fecha
+
+Monto original
+
+Moneda
+
+Tipo de cambio
+
+Monto en COP
+
+Tipo de movimiento
+
+Cuenta
+
+Categoría
+
+Opcionales:
+
+Fuente (Personal / Enlace / Cliente / Proyecto)
+
+Método de pago
+
+Nota
+
+Adjunto (imagen o PDF)
+
+Reglas:
+
+Transferencias generan dos movimientos internos.
+
+Todo pago de cuenta de cobro crea automáticamente un ingreso.
+
+MÓDULO 4 — Categorías y reglas
+
+Categorías y subcategorías.
+
+Reglas automáticas por texto o emisor.
+
+Aprendizaje por corrección manual.
+
+MÓDULO 5 — Deudas y simulador (CRÍTICO)
+
+Datos obligatorios por deuda
+
+Nombre
+
+Saldo actual (COP)
+
+Tasa de interés (valor + tipo)
+
+Pago mínimo
+
+Número total de cuotas (si aplica)
+
+Cuotas pagadas (si aplica)
+
+Estado
+
+Día límite (informativo)
+
+Nota: el sistema debe soportar deudas por cuotas definidas (ej. préstamos) y deudas revolventes (ej. tarjetas).
+
+Lógica mensual del simulador
+
+Para cada deuda, en cada mes de simulación:
+
+Interés del mes
+
+interes = saldo * tasa_mensual
+
+Pago aplicado
+
+Todas las deudas: pago mínimo
+
+Deuda objetivo (según estrategia): pago mínimo + extra
+
+Abono a capital
+
+capital = pago - interes
+
+Nuevo saldo
+
+saldo = saldo - capital
+
+Avance de cuotas (si aplica)
+
+Incrementar el contador de cuotas pagadas.
+
+Calcular cuotas restantes:
+
+cuotas_restantes = cuotas_totales - cuotas_pagadas
+
+Resultados obligatorios del simulador
+
+El simulador DEBE mostrar:
+
+Mes y año estimado de finalización de cada deuda.
+
+Número de cuotas restantes por deuda.
+
+Tiempo total para quedar libre de deudas (en meses).
+
+Total de intereses pagados.
+
+Tabla mensual con:
+
+mes
+
+pago
+
+interés
+
+capital
+
+saldo restante
+
+cuotas restantes (si aplica)
+
+Validaciones obligatorias
+
+Si falta la tasa de interés → no simular.
+
+Si el pago mínimo ≤ interés → mostrar advertencia.
+
+Si una deuda tiene cuotas definidas y el pago proyectado excede las cuotas, ajustar el último pago.
+
+Límite máximo de simulación: 600 meses.
+
+Estrategias
+
+Bola de nieve: ordenar deudas por saldo ascendente.
+
+Avalancha: ordenar deudas por tasa descendente.
+
+MÓDULO 6 — Presupuestos y alertas
+
+Presupuesto mensual por categoría.
+
+Alertas automáticas:
+
+exceso de gasto,
+
+deuda próxima a vencer,
+
+flujo mensual negativo,
+
+pago mínimo insuficiente.
+
+MÓDULO 7 — Clientes, proyectos, cotizaciones y cuentas de cobro
+
+Clientes
+
+Nombre
+
+Contacto
+
+Empresa
+
+Notas
+
+Proyectos
+
+Cliente asociado
+
+Estado
+
+Valor total
+
+Cotizaciones (NUEVO – FUNDAMENTAL)
+
+Las cotizaciones representan propuestas comerciales previas a una cuenta de cobro.
+
+Campos obligatorios:
+
+Número de cotización (automático)
+
+Cliente
+
+Proyecto (opcional)
+
+Fecha de creación
+
+Moneda (COP / USD / EUR)
+
+Tipo de cambio aplicado
+
+Ítems:
+
+descripción
+
+cantidad
+
+valor unitario
+
+subtotal
+
+Subtotal
+
+Impuestos (opcional)
+
+Total
+
+Validez (en días)
+
+Estado: borrador, enviada, aceptada, rechazada, vencida
+
+Reglas clave:
+
+Toda cotización DEBE poder convertirse a PDF.
+
+El PDF debe usar la identidad visual JGM (logo, colores, tipografía).
+
+El PDF debe poder descargarse y enviarse al cliente.
+
+Una cotización aceptada PUEDE convertirse automáticamente en:
+
+proyecto
+
+cuenta de cobro
+
+Cuentas de cobro
+
+Numeración automática
+
+Origen:
+
+desde cotización aceptada, o
+
+creada manualmente
+
+Ítems detallados
+
+Anticipos
+
+Pagos parciales
+
+Estados: borrador, enviada, parcial, pagada, vencida
+
+Regla financiera:
+
+Todo pago registrado en una cuenta de cobro crea automáticamente un ingreso en el sistema.
+
+MÓDULO 8 — OCR
+
+Flujo:
+
+Subir imagen.
+
+OCR extrae texto.
+
+Detecta monto, fecha y emisor.
+
+Usuario confirma.
+
+Se guarda el movimiento.
+
+Nunca guardar sin confirmación humana.
+
+MÓDULO 9 — Dashboard
+
+Debe mostrar:
+
+Saldo total consolidado en COP.
+
+Ingresos del mes (por moneda y consolidados).
+
+Gastos del mes.
+
+Por pagar (deudas).
+
+Por cobrar (clientes).
+
+Proyección a fin de mes.
+
+Top categorías.
+
+MÓDULO 10 — Reportes y respaldo
+
+Reportes mensuales y comparativos.
+
+Exportación CSV / Excel.
+
+Backup manual.
+
+Backup automático diario.
+
+7. Base de datos (Supabase / PostgreSQL)
+
+Tablas principales:
+
+accounts
+
+transactions
+
+categories
+
+debts
+
+debt_simulations
+
+exchange_rates
+
+clients
+
+projects
+
+invoices
+
+invoice_items
+
+invoice_payments
+
+Todas las tablas deben:
+
+incluir user_id
+
+tener Row Level Security activo
+
+8. Stack tecnológico final
+
+Frontend: Next.js + Tailwind
+
+Backend: Supabase
+
+Base de datos: PostgreSQL
+
+Autenticación: Supabase Auth
+
+Storage: Supabase Storage (privado)
+
+OCR: servicio externo
+
+Deploy: Vercel / Netlify
+
+9. Criterios de éxito
+
+Registrar un gasto en menos de 10 segundos.
+
+Ver el estado financiero real en una sola pantalla.
+
+Simulaciones de deuda correctas y reproducibles.
+
+Control total de ingresos en COP, USD y EUR.
+
+Claridad absoluta sobre dinero disponible, deudas y cuentas por cobrar.
+
+10. Resultado esperado
+
+Este PRD permite construir el sistema sin ambigüedades técnicas ni financieras, evitando errores de cálculo y garantizando consistencia en el tiempo.

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel JGM | Consultor Digital</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="images/Untitled design.PNG" alt="Logo JGM" class="logo">
+                    <div class="logo-text">
+                        <span class="brand-name">Panel JGM</span>
+                        <span class="brand-sub">Consultor digital</span>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active" data-view="dashboard">
+                        <a href="#"><ion-icon name="grid-outline"></ion-icon><span>Dashboard</span></a>
+                    </li>
+                    <li class="nav-item" data-view="movimientos">
+                        <a href="#"><ion-icon name="list-outline"></ion-icon><span>Movimientos</span></a>
+                    </li>
+                    <li class="nav-item" data-view="deudas">
+                        <a href="#"><ion-icon name="wallet-outline"></ion-icon><span>Deudas</span></a>
+                    </li>
+                    <li class="nav-item" data-view="cuentas">
+                        <a href="#"><ion-icon name="card-outline"></ion-icon><span>Cuentas</span></a>
+                    </li>
+                    <li class="nav-item" data-view="clientes">
+                        <a href="#"><ion-icon name="people-outline"></ion-icon><span>Clientes</span></a>
+                    </li>
+                    <li class="nav-item" data-view="reportes">
+                        <a href="#"><ion-icon name="stats-chart-outline"></ion-icon><span>Reportes</span></a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="theme-toggle-container">
+                    <ion-icon name="sunny-outline"></ion-icon>
+                    <span>Modo Claro</span>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="view-title">
+                    <h2 id="current-view-name">Panel JGM</h2>
+                    <ion-icon name="chevron-down-outline"></ion-icon>
+                </div>
+                <div class="top-bar-actions">
+                    <button class="btn-primary" id="add-movement-btn">
+                        <ion-icon name="add-outline"></ion-icon><span>Agregar Movimiento</span>
+                    </button>
+                    <div class="profile-chip">
+                        <img src="https://ui-avatars.com/api/?name=Jorge+Gonzalez&background=0D8ABC&color=fff"
+                            alt="Profile" class="avatar">
+                    </div>
+                </div>
+            </header>
+
+            <div id="view-container" class="view-container">
+                <!-- Dashboard View -->
+                <div id="dashboard-view" class="view active">
+                    <div class="welcome-section">
+                        <h1>Hola Jorge González Mejía</h1>
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="summary-cards">
+                            <div class="card summary-card balance">
+                                <div class="card-icon"><ion-icon name="wallet-outline"></ion-icon></div>
+                                <div class="card-info"><span class="label">Saldo hoy</span>
+                                    <h3 class="value">$8.450.000</h3>
+                                </div>
+                            </div>
+                            <div class="card summary-card income">
+                                <div class="card-icon"><ion-icon name="arrow-up-outline"></ion-icon></div>
+                                <div class="card-info"><span class="label">Ingresos del mes</span>
+                                    <h3 class="value">$4.200.000</h3>
+                                </div>
+                            </div>
+                            <div class="card summary-card expense">
+                                <div class="card-icon"><ion-icon name="arrow-down-outline"></ion-icon></div>
+                                <div class="card-info"><span class="label">Gastos del mes</span>
+                                    <h3 class="value">$2.950.000</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card chart-card">
+                            <div class="card-header">
+                                <h3>Flujo del mes</h3><ion-icon name="ellipsis-horizontal-outline"></ion-icon>
+                            </div>
+                            <div class="chart-container"><canvas id="flowChart"></canvas></div>
+                            <div class="chart-legend">
+                                <div class="legend-item"><span class="dot income"></span> Ingresos</div>
+                                <div class="legend-item"><span class="dot expense"></span> Gastos</div>
+                            </div>
+                        </div>
+                        <div class="bottom-grid">
+                            <div class="card status-card">
+                                <div class="status-item">
+                                    <div class="status-icon payments"><ion-icon name="card-outline"></ion-icon></div>
+                                    <div class="status-info"><span class="label">Por pagar</span>
+                                        <h3 class="value">$3.200.000</h3><span class="sub">3 deudas pendientes</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card status-card">
+                                <div class="status-item">
+                                    <div class="status-icon collections"><ion-icon name="people-outline"></ion-icon>
+                                    </div>
+                                    <div class="status-info"><span class="label">Por cobrar</span>
+                                        <h3 class="value">$5.600.000</h3><span class="sub">4 cuentas por cobrar</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card pie-card">
+                                <div class="card-header">
+                                    <h3>Top gastos del mes</h3>
+                                </div>
+                                <div class="pie-content">
+                                    <div class="pie-chart-container"><canvas id="expensesPieChart"></canvas></div>
+                                    <div class="pie-legend">
+                                        <ul>
+                                            <li><span class="dot" style="background:#4BC0C0"></span> Mercado
+                                                <span>30.5%</span></li>
+                                            <li><span class="dot" style="background:#54D2D2"></span> Transporte
+                                                <span>20.0%</span></li>
+                                            <li><span class="dot" style="background:#82E0AA"></span> Perro
+                                                <span>12.5%</span></li>
+                                            <li><span class="dot" style="background:#FAD7A0"></span> Salidas
+                                                <span>10.0%</span></li>
+                                            <li><span class="dot" style="background:#D5DBDB"></span> Otros
+                                                <span>27.0%</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Movimientos View -->
+                <div id="movimientos-view" class="view">
+                    <div class="filter-bar">
+                        <select class="filter-select">
+                            <option>Tipos</option>
+                        </select>
+                        <select class="filter-select">
+                            <option>Todas</option>
+                        </select>
+                        <select class="filter-select">
+                            <option>Fechas</option>
+                        </select>
+                        <select class="filter-select">
+                            <option>Categorías</option>
+                        </select>
+                        <div class="date-range"><ion-icon name="calendar-outline"></ion-icon><span>14 Abr 2024 - 20 Abr
+                                2024</span></div>
+                        <div class="search-container"><ion-icon name="search-outline"></ion-icon><input type="text"
+                                placeholder="Buscar..."></div>
+                    </div>
+                    <div class="stats-summary card">
+                        <div class="stat">Ingresos: <span class="income">+4.200.000 COP</span></div>
+                        <div class="stat">Egresos: <span class="expense">-1.950.000 COP</span></div>
+                        <div class="stat total">9.330.000 COP</div>
+                    </div>
+                    <div class="table-container card">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Categoría</th>
+                                    <th>Cuenta</th>
+                                    <th>Descripción</th>
+                                    <th>Monto</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>15 Abr 2024</td>
+                                    <td>
+                                        <div class="type-icon income"><ion-icon name="arrow-up-outline"></ion-icon>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge tag-income">Enlace</span></td>
+                                    <td>Bancolombia</td>
+                                    <td>Proyecto Enlace</td>
+                                    <td class="income">$1.400.000</td>
+                                    <td><button class="btn-edit">Editar</button></td>
+                                </tr>
+                                <tr>
+                                    <td>15 Abr 2024</td>
+                                    <td>
+                                        <div class="type-icon expense"><ion-icon name="arrow-down-outline"></ion-icon>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge tag-expense">Comida</span></td>
+                                    <td>Nequi</td>
+                                    <td>Almuerzo</td>
+                                    <td class="expense">-$25.000</td>
+                                    <td><button class="btn-edit">Editar</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Deudas View -->
+                <div id="deudas-view" class="view">
+                    <div class="simulator-header">
+                        <div class="debt-summary card">
+                            <div class="total-debt"><span class="label">Deuda Total</span>
+                                <h2 class="value">$12.500.000</h2>
+                            </div>
+                        </div>
+                        <div class="simulator-controls card">
+                            <h3>Simulador</h3>
+                            <div class="control-group"><label>Presupuesto Extra</label><input type="number"
+                                    value="500000" class="filter-select"></div>
+                            <button class="btn-primary full-width">Calcular</button>
+                        </div>
+                    </div>
+                    <div class="debt-grid">
+                        <div class="card debt-card">
+                            <div class="debt-header">
+                                <h4>Visa Bancolombia</h4>
+                                <div class="interest-badge">18.5%</div>
+                            </div>
+                            <div class="debt-progress">
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: 54%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cuentas View -->
+                <div id="cuentas-view" class="view">
+                    <div class="accounts-grid">
+                        <div class="card account-card">
+                            <h4>Bancolombia</h4>
+                            <h3 class="value">$5.400.000</h3>
+                        </div>
+                        <div class="card account-card">
+                            <h4>Nequi</h4>
+                            <h3 class="value">$1.250.000</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>
