@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { AppLayout } from "@/components/AppLayout";
 import { SkeletonDashboard } from "@/components/ui/Skeleton";
 import { ExpenseDonutChart, ExpenseLegend } from "@/components/Charts";
+import { Icons } from "@/components/Icons";
 
 interface AccountWithBalance {
     id: string;
@@ -31,6 +32,8 @@ export default function DashboardPage() {
     const [monthIncome, setMonthIncome] = useState(0);
     const [monthExpense, setMonthExpense] = useState(0);
     const [topCategories, setTopCategories] = useState<TopCategory[]>([]);
+    const [subscriptionTotal, setSubscriptionTotal] = useState(0);
+    const [subscriptionCount, setSubscriptionCount] = useState(0);
 
     useEffect(() => {
         let isMounted = true;
@@ -52,7 +55,8 @@ export default function DashboardPage() {
                     supabase.from("transactions").select("account_id, type, amount_cop").in("type", ["income", "expense"]).order("date", { ascending: false }).limit(500),
                     supabase.from("transactions").select("amount_cop").eq("type", "income").gte("date", startDate).lte("date", endDate),
                     supabase.from("transactions").select("amount_cop").eq("type", "expense").gte("date", startDate).lte("date", endDate),
-                    supabase.from("transactions").select("category_id, amount_cop, categories (name)").eq("type", "expense").gte("date", startDate).lte("date", endDate).limit(100)
+                    supabase.from("transactions").select("category_id, amount_cop, categories (name)").eq("type", "expense").gte("date", startDate).lte("date", endDate).limit(100),
+                    supabase.from("subscriptions").select("amount, frequency, currency").eq("is_active", true)
                 ]);
 
                 const getData = (index: number) => {
@@ -65,6 +69,7 @@ export default function DashboardPage() {
                 const incomeData = getData(2);
                 const expenseData = getData(3);
                 const expensesByCategory = getData(4);
+                const subscriptionsData = getData(5);
 
                 const accountBalances: AccountWithBalance[] = accountsData.map((acc: any) => {
                     const initial = parseFloat(String(acc.initial_balance)) || 0;
@@ -88,6 +93,17 @@ export default function DashboardPage() {
                         catTotals[id].total += amt;
                     });
                     setTopCategories(Object.entries(catTotals).map(([id, d]) => ({ category_id: id, category_name: d.name, total: d.total })).sort((a, b) => b.total - a.total).slice(0, 5));
+
+                    // Calcular total mensual de suscripciones
+                    const subTotal = subscriptionsData.reduce((sum: number, sub: any) => {
+                        const amount = parseFloat(String(sub.amount)) || 0;
+                        if (sub.frequency === 'monthly') return sum + amount;
+                        if (sub.frequency === 'yearly') return sum + amount / 12;
+                        if (sub.frequency === 'weekly') return sum + amount * 4;
+                        return sum;
+                    }, 0);
+                    setSubscriptionTotal(subTotal);
+                    setSubscriptionCount(subscriptionsData.length);
                 }
             } catch (err: any) {
                 if (err?.name !== 'AbortError') console.error(err);
@@ -139,7 +155,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Métricas - Grid responsive */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-[#12161F] border border-white/10 rounded-xl p-4">
                         <p className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Ingresos del Mes</p>
                         <p className="text-[#3ED6D8] text-xl md:text-2xl font-black font-mono tracking-tight">
@@ -158,6 +174,16 @@ export default function DashboardPage() {
                             {(monthIncome - monthExpense) >= 0 ? '+' : ''}{(monthIncome - monthExpense).toLocaleString("es-CO")}
                         </p>
                     </div>
+                    <Link href="/suscripciones" className="bg-[#12161F] border border-white/10 rounded-xl p-4 hover:border-[#6366F1]/50 transition-colors group">
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-zinc-400 text-xs font-bold uppercase tracking-wider">Suscripciones</p>
+                            <span className="text-[#6366F1] group-hover:translate-x-1 transition-transform"><Icons.Repeat /></span>
+                        </div>
+                        <p className="text-[#6366F1] text-xl md:text-2xl font-black font-mono tracking-tight">
+                            ${subscriptionTotal.toLocaleString("es-CO")}
+                        </p>
+                        <p className="text-zinc-500 text-xs mt-1">{subscriptionCount} activas</p>
+                    </Link>
                 </div>
 
                 {/* Cuentas y Distribución - Grid responsive */}
