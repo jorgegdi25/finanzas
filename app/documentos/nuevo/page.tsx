@@ -34,7 +34,7 @@ export default function NuevoDocumentoPage() {
         reset,
         formState: { errors, isSubmitting },
     } = useForm<DocumentFormData>({
-        resolver: zodResolver(documentSchema),
+        resolver: zodResolver(documentSchema) as any,
         defaultValues: {
             type: 'quote',
             client_id: "",
