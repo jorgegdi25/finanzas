@@ -13,6 +13,7 @@ import { Select } from "@/components/ui/Select";
 import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { SkeletonCard } from "@/components/ui/Skeleton";
+import { Icons } from "@/components/Icons";
 
 interface Subscription {
     id: string;
@@ -211,15 +212,15 @@ export default function SuscripcionesPage() {
                 <div className="flex gap-2 border-b border-white/10 pb-2">
                     <button
                         onClick={() => setActiveTab("personal")}
-                        className={`px-4 py-2 rounded-t-lg font-semibold transition-colors ${activeTab === "personal" ? "bg-[#3ED6D8] text-[#0B0E14]" : "text-zinc-400 hover:text-white"}`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-colors ${activeTab === "personal" ? "bg-[#3ED6D8] text-[#0B0E14]" : "text-zinc-400 hover:text-white"}`}
                     >
-                        🏠 Personal
+                        <Icons.Home /> Personal
                     </button>
                     <button
                         onClick={() => setActiveTab("business")}
-                        className={`px-4 py-2 rounded-t-lg font-semibold transition-colors ${activeTab === "business" ? "bg-[#F2A08F] text-[#0B0E14]" : "text-zinc-400 hover:text-white"}`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-colors ${activeTab === "business" ? "bg-[#F2A08F] text-[#0B0E14]" : "text-zinc-400 hover:text-white"}`}
                     >
-                        💼 Empresarial
+                        <Icons.Building /> Empresarial
                     </button>
                 </div>
 
@@ -262,12 +263,12 @@ export default function SuscripcionesPage() {
                                         ${sub.amount.toLocaleString("es-CO")}
                                         <span className="text-xs text-zinc-500 ml-1">{sub.currency}</span>
                                     </p>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => toggleActive(sub)} className="text-zinc-400 hover:text-white text-sm">
-                                            {sub.is_active ? "⏸️" : "▶️"}
+                                    <div className="flex gap-3">
+                                        <button onClick={() => toggleActive(sub)} className="text-zinc-400 hover:text-white p-1 rounded hover:bg-white/10 transition-colors">
+                                            {sub.is_active ? <Icons.Pause /> : <Icons.Play />}
                                         </button>
-                                        <button onClick={() => openEdit(sub)} className="text-zinc-400 hover:text-white text-sm">✏️</button>
-                                        <button onClick={() => handleDelete(sub)} className="text-zinc-400 hover:text-red-400 text-sm">🗑️</button>
+                                        <button onClick={() => openEdit(sub)} className="text-zinc-400 hover:text-white p-1 rounded hover:bg-white/10 transition-colors"><Icons.Edit /></button>
+                                        <button onClick={() => handleDelete(sub)} className="text-zinc-400 hover:text-red-400 p-1 rounded hover:bg-white/10 transition-colors"><Icons.Trash /></button>
                                     </div>
                                 </div>
                             </div>
@@ -283,8 +284,8 @@ export default function SuscripcionesPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <Select label="Tipo" {...register("type")} error={errors.type?.message}>
-                            <option value="personal">🏠 Personal</option>
-                            <option value="business">💼 Empresarial</option>
+                            <option value="personal">Personal</option>
+                            <option value="business">Empresarial</option>
                         </Select>
                         <Select label="Frecuencia" {...register("frequency")} error={errors.frequency?.message}>
                             <option value="weekly">Semanal</option>

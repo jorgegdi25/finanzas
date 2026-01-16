@@ -46,10 +46,8 @@ ALTER TABLE accounts ADD COLUMN IF NOT EXISTS owner_type TEXT DEFAULT 'personal'
 ALTER TABLE accounts ADD COLUMN IF NOT EXISTS bank_name TEXT;
 ALTER TABLE accounts ADD COLUMN IF NOT EXISTS account_number TEXT;
 
--- 5. Crear categoría de suscripciones si no existe
-INSERT INTO categories (name, type, icon, color, is_subscription, is_active)
-SELECT 'Suscripciones', 'expense', '🔄', '#6366F1', true, true
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = 'Suscripciones' AND is_subscription = true);
+-- NOTA: La categoría "Suscripciones" se puede crear manualmente
+-- desde la UI o agregando un INSERT con tu user_id específico.
 
 -- =====================================================
 -- FIN DE MIGRACIÓN
