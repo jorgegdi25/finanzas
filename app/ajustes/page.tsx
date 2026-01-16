@@ -24,7 +24,7 @@ export default function AjustesPage() {
         reset,
         formState: { errors, isSubmitting },
     } = useForm<ProfileFormData>({
-        resolver: zodResolver(profileSchema),
+        resolver: zodResolver(profileSchema) as any,
         defaultValues: {
             issuer_name: "",
             issuer_id_number: "",

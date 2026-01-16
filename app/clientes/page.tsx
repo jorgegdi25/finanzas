@@ -40,7 +40,7 @@ export default function ClientesPage() {
         reset,
         formState: { errors, isSubmitting },
     } = useForm<ClientFormData>({
-        resolver: zodResolver(clientSchema),
+        resolver: zodResolver(clientSchema) as any,
         defaultValues: {
             name: "",
             email: "",

@@ -52,7 +52,7 @@ function ProyectosContent() {
         setValue,
         formState: { errors, isSubmitting },
     } = useForm<ProjectFormData>({
-        resolver: zodResolver(projectSchema),
+        resolver: zodResolver(projectSchema) as any,
         defaultValues: {
             name: "",
             client_id: clientIdParam || "",
