@@ -120,3 +120,19 @@ export const documentSchema = z.object({
 });
 export type DocumentFormData = z.infer<typeof documentSchema>;
 export type DocumentItemFormData = z.infer<typeof documentItemSchema>;
+
+// === SUSCRIPCIÓN ===
+export const subscriptionSchema = z.object({
+    name: z.string().min(1, 'Nombre requerido').max(100, 'Máximo 100 caracteres'),
+    type: z.enum(['personal', 'business']),
+    amount: z.coerce.number().positive('El monto debe ser mayor a 0'),
+    currency: z.enum(['COP', 'USD', 'EUR']),
+    frequency: z.enum(['weekly', 'monthly', 'yearly']),
+    billing_day: z.coerce.number().int().min(1).max(31).optional().nullable(),
+    account_id: z.string().uuid('Selecciona una cuenta'),
+    category_id: z.string().uuid('Selecciona una categoría').optional().nullable(),
+    start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido'),
+    end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido').optional().nullable().or(z.literal('')),
+    notes: z.string().max(500, 'Máximo 500 caracteres').optional().or(z.literal('')),
+});
+export type SubscriptionFormData = z.infer<typeof subscriptionSchema>;

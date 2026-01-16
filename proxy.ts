@@ -37,6 +37,7 @@ export async function proxy(request: NextRequest) {
         '/dashboard',
         '/cuentas',
         '/deudas',
+        '/suscripciones',
         '/ahorros',
         '/movimientos',
         '/clientes',
