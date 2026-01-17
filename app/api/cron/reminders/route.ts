@@ -70,7 +70,7 @@ export async function GET(request: Request) {
             });
 
             // 4. Enviar notificaciones
-            const messages = [];
+            const messages: string[] = [];
 
             subscriptions?.forEach(sub => {
                 const isToday = sub.next_payment_date === todayStr;
