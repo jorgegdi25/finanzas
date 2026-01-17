@@ -23,6 +23,15 @@ interface TopCategory {
     total: number;
 }
 
+interface UpcomingPayment {
+    id: string;
+    name: string;
+    amount: number;
+    due_date: string;
+    type: 'subscription' | 'debt';
+    days_until: number;
+}
+
 export default function DashboardPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
@@ -35,6 +44,7 @@ export default function DashboardPage() {
     const [subscriptionTotal, setSubscriptionTotal] = useState(0);
     const [subscriptionCount, setSubscriptionCount] = useState(0);
     const [historicalData, setHistoricalData] = useState<{ month: string; income: number; expense: number }[]>([]);
+    const [upcomingPayments, setUpcomingPayments] = useState<UpcomingPayment[]>([]);
 
     useEffect(() => {
         let isMounted = true;
@@ -57,9 +67,11 @@ export default function DashboardPage() {
                     supabase.from("transactions").select("amount_cop").eq("type", "income").gte("date", startDate).lte("date", endDate),
                     supabase.from("transactions").select("amount_cop").eq("type", "expense").gte("date", startDate).lte("date", endDate),
                     supabase.from("transactions").select("category_id, amount_cop, categories (name)").eq("type", "expense").gte("date", startDate).lte("date", endDate).limit(100),
-                    supabase.from("subscriptions").select("amount, frequency, currency").eq("is_active", true),
+                    supabase.from("subscriptions").select("id, name, amount, frequency, currency, next_payment_date").eq("is_active", true),
                     // Consulta histórica: últimos 12 meses
-                    supabase.from("transactions").select("date, type, amount_cop").in("type", ["income", "expense"]).gte("date", new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString().split("T")[0]).order("date", { ascending: true })
+                    supabase.from("transactions").select("date, type, amount_cop").in("type", ["income", "expense"]).gte("date", new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString().split("T")[0]).order("date", { ascending: true }),
+                    // Deudas activas
+                    supabase.from("debts").select("id, name, minimum_payment_cop, payment_due_day, status").eq("status", "active")
                 ]);
 
                 const getData = (index: number) => {
@@ -74,6 +86,7 @@ export default function DashboardPage() {
                 const expensesByCategory = getData(4);
                 const subscriptionsData = getData(5);
                 const historicalTxs = getData(6);
+                const debtsData = getData(7);
 
                 const accountBalances: AccountWithBalance[] = accountsData.map((acc: any) => {
                     const initial = parseFloat(String(acc.initial_balance)) || 0;
@@ -141,6 +154,58 @@ export default function DashboardPage() {
                         };
                     });
                     setHistoricalData(histData);
+
+                    // Procesar próximos pagos
+                    const upcoming: UpcomingPayment[] = [];
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    // Agregar suscripciones con next_payment_date
+                    subscriptionsData.forEach((sub: any) => {
+                        if (sub.next_payment_date) {
+                            const dueDate = new Date(sub.next_payment_date);
+                            const diffTime = dueDate.getTime() - today.getTime();
+                            const daysUntil = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            if (daysUntil >= -3 && daysUntil <= 30) { // Mostrar desde 3 días atrasado hasta 30 días adelante
+                                upcoming.push({
+                                    id: sub.id,
+                                    name: sub.name,
+                                    amount: parseFloat(sub.amount) || 0,
+                                    due_date: sub.next_payment_date,
+                                    type: 'subscription',
+                                    days_until: daysUntil
+                                });
+                            }
+                        }
+                    });
+
+                    // Agregar deudas con payment_due_day
+                    debtsData.forEach((debt: any) => {
+                        if (debt.payment_due_day) {
+                            // Calcular próxima fecha de pago basada en el día
+                            const dueDay = parseInt(debt.payment_due_day);
+                            let dueDate = new Date(today.getFullYear(), today.getMonth(), dueDay);
+                            if (dueDate < today) {
+                                dueDate = new Date(today.getFullYear(), today.getMonth() + 1, dueDay);
+                            }
+                            const diffTime = dueDate.getTime() - today.getTime();
+                            const daysUntil = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            if (daysUntil <= 30) {
+                                upcoming.push({
+                                    id: debt.id,
+                                    name: debt.name,
+                                    amount: parseFloat(debt.minimum_payment_cop) || 0,
+                                    due_date: dueDate.toISOString().split('T')[0],
+                                    type: 'debt',
+                                    days_until: daysUntil
+                                });
+                            }
+                        }
+                    });
+
+                    // Ordenar por días hasta el pago
+                    upcoming.sort((a, b) => a.days_until - b.days_until);
+                    setUpcomingPayments(upcoming.slice(0, 5)); // Mostrar máximo 5
                 }
             } catch (err: any) {
                 if (err?.name !== 'AbortError') console.error(err);
@@ -266,6 +331,53 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Próximos Pagos */}
+                {upcomingPayments.length > 0 && (
+                    <div className="bg-[#12161F] border border-amber-500/30 rounded-xl p-4">
+                        <h3 className="text-white text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <Icons.AlertTriangle />
+                            Próximos Pagos
+                        </h3>
+                        <div className="space-y-2">
+                            {upcomingPayments.map((payment) => (
+                                <div
+                                    key={`${payment.type}-${payment.id}`}
+                                    className={`flex items-center justify-between p-3 rounded-lg border ${payment.days_until < 0 ? 'bg-rose-500/10 border-rose-500/30' :
+                                            payment.days_until <= 3 ? 'bg-amber-500/10 border-amber-500/30' :
+                                                'bg-black/20 border-white/5'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className={`text-lg ${payment.type === 'subscription' ? 'text-[#6366F1]' : 'text-[#F2A08F]'
+                                            }`}>
+                                            {payment.type === 'subscription' ? <Icons.Repeat /> : <Icons.DollarCircle />}
+                                        </span>
+                                        <div>
+                                            <p className="text-white font-semibold text-sm">{payment.name}</p>
+                                            <p className="text-zinc-500 text-xs">
+                                                {new Date(payment.due_date).toLocaleDateString("es-CO", { day: 'numeric', month: 'short' })}
+                                                <span className={`ml-2 ${payment.days_until < 0 ? 'text-rose-400' :
+                                                        payment.days_until === 0 ? 'text-amber-400' :
+                                                            payment.days_until <= 3 ? 'text-amber-400' :
+                                                                'text-zinc-500'
+                                                    }`}>
+                                                    {payment.days_until < 0 ? `${Math.abs(payment.days_until)} días atrasado` :
+                                                        payment.days_until === 0 ? 'Hoy' :
+                                                            payment.days_until === 1 ? 'Mañana' :
+                                                                `en ${payment.days_until} días`}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <p className="text-white font-bold font-mono text-sm">
+                                        ${payment.amount.toLocaleString("es-CO")}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Tendencia Histórica (12 meses) */}
                 <div className="bg-[#12161F] border border-white/10 rounded-xl p-4">
