@@ -260,7 +260,19 @@ export default function MovimientosPage() {
                 {/* Left: Form */}
                 <div className="lg:col-span-1">
                     <div className="bg-[#12161F] border border-white/10 rounded-xl p-5 sticky top-0">
-                        <h2 className="text-white text-sm font-bold uppercase tracking-wider mb-5">Nuevo Movimiento</h2>
+                        <div className="flex justify-between items-center mb-5">
+                            <h2 className="text-white text-sm font-bold uppercase tracking-wider">Nuevo Movimiento</h2>
+                            <div className="flex gap-2">
+                                <button onClick={() => setShowAccountForm(true)} className="p-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-xs rounded-lg transition-all border border-white/10" title="Nueva Cuenta">
+                                    <span className="hidden sm:inline">+ Cuenta</span>
+                                    <span className="sm:hidden">💳</span>
+                                </button>
+                                <button onClick={() => setShowCategoryForm(true)} className="p-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-xs rounded-lg transition-all border border-white/10" title="Nueva Categoría">
+                                    <span className="hidden sm:inline">+ Categoría</span>
+                                    <span className="sm:hidden">🏷️</span>
+                                </button>
+                            </div>
+                        </div>
                         {needsSetup ? (
                             <div className="text-center py-8">
                                 <p className="text-amber-400 text-sm mb-4">⚠️ Configura cuentas y categorías primero</p>
