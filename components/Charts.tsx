@@ -142,3 +142,84 @@ export function ExpenseLegend({ data }: { data: ExpenseData[] }) {
         </div>
     );
 }
+
+/**
+ * Gráfico de tendencia histórica (últimos 12 meses)
+ */
+export function MonthlyTrendChart({ data }: { data: MonthlyData[] }) {
+    if (data.length === 0) {
+        return (
+            <div className="h-[250px] flex items-center justify-center text-zinc-500 text-sm">
+                Sin datos históricos
+            </div>
+        );
+    }
+
+    // Calcular totales
+    const totalIncome = data.reduce((sum, d) => sum + d.income, 0);
+    const totalExpense = data.reduce((sum, d) => sum + d.expense, 0);
+    const balance = totalIncome - totalExpense;
+
+    return (
+        <div className="space-y-4">
+            <div className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <XAxis
+                            dataKey="month"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: "#71717a", fontSize: 9 }}
+                            interval={0}
+                            angle={-45}
+                            textAnchor="end"
+                            height={40}
+                        />
+                        <YAxis
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: "#71717a", fontSize: 10 }}
+                            tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
+                        />
+                        <Tooltip
+                            content={({ active, payload, label }) => {
+                                if (active && payload && payload.length) {
+                                    return (
+                                        <div className="bg-[#0B0E14] border border-white/10 rounded-lg px-3 py-2 shadow-xl">
+                                            <p className="text-zinc-400 text-xs mb-1">{label}</p>
+                                            {payload.map((p, i) => (
+                                                <p key={i} className="font-mono text-sm" style={{ color: p.color }}>
+                                                    {p.name}: ${(p.value as number).toLocaleString("es-CO")}
+                                                </p>
+                                            ))}
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            }}
+                        />
+                        <Bar dataKey="income" name="Ingresos" fill="#3ED6D8" radius={[2, 2, 0, 0]} />
+                        <Bar dataKey="expense" name="Egresos" fill="#F2A08F" radius={[2, 2, 0, 0]} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+            {/* Resumen */}
+            <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-[#3ED6D8]/10 border border-[#3ED6D8]/20 rounded-lg p-2">
+                    <p className="text-[10px] text-zinc-500 uppercase font-bold">Total Ingresos</p>
+                    <p className="text-[#3ED6D8] font-mono font-bold text-sm">${(totalIncome / 1000000).toFixed(1)}M</p>
+                </div>
+                <div className="bg-[#F2A08F]/10 border border-[#F2A08F]/20 rounded-lg p-2">
+                    <p className="text-[10px] text-zinc-500 uppercase font-bold">Total Egresos</p>
+                    <p className="text-[#F2A08F] font-mono font-bold text-sm">${(totalExpense / 1000000).toFixed(1)}M</p>
+                </div>
+                <div className={`${balance >= 0 ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-rose-500/10 border-rose-500/20'} border rounded-lg p-2`}>
+                    <p className="text-[10px] text-zinc-500 uppercase font-bold">Balance</p>
+                    <p className={`font-mono font-bold text-sm ${balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {balance >= 0 ? '+' : ''}${(balance / 1000000).toFixed(1)}M
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}

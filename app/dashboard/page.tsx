@@ -6,7 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { AppLayout } from "@/components/AppLayout";
 import { SkeletonDashboard } from "@/components/ui/Skeleton";
-import { ExpenseDonutChart, ExpenseLegend } from "@/components/Charts";
+import { ExpenseDonutChart, ExpenseLegend, MonthlyTrendChart } from "@/components/Charts";
 import { Icons } from "@/components/Icons";
 
 interface AccountWithBalance {
@@ -34,6 +34,7 @@ export default function DashboardPage() {
     const [topCategories, setTopCategories] = useState<TopCategory[]>([]);
     const [subscriptionTotal, setSubscriptionTotal] = useState(0);
     const [subscriptionCount, setSubscriptionCount] = useState(0);
+    const [historicalData, setHistoricalData] = useState<{ month: string; income: number; expense: number }[]>([]);
 
     useEffect(() => {
         let isMounted = true;
@@ -56,7 +57,9 @@ export default function DashboardPage() {
                     supabase.from("transactions").select("amount_cop").eq("type", "income").gte("date", startDate).lte("date", endDate),
                     supabase.from("transactions").select("amount_cop").eq("type", "expense").gte("date", startDate).lte("date", endDate),
                     supabase.from("transactions").select("category_id, amount_cop, categories (name)").eq("type", "expense").gte("date", startDate).lte("date", endDate).limit(100),
-                    supabase.from("subscriptions").select("amount, frequency, currency").eq("is_active", true)
+                    supabase.from("subscriptions").select("amount, frequency, currency").eq("is_active", true),
+                    // Consulta histórica: últimos 12 meses
+                    supabase.from("transactions").select("date, type, amount_cop").in("type", ["income", "expense"]).gte("date", new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString().split("T")[0]).order("date", { ascending: true })
                 ]);
 
                 const getData = (index: number) => {
@@ -70,6 +73,7 @@ export default function DashboardPage() {
                 const expenseData = getData(3);
                 const expensesByCategory = getData(4);
                 const subscriptionsData = getData(5);
+                const historicalTxs = getData(6);
 
                 const accountBalances: AccountWithBalance[] = accountsData.map((acc: any) => {
                     const initial = parseFloat(String(acc.initial_balance)) || 0;
@@ -104,6 +108,39 @@ export default function DashboardPage() {
                     }, 0);
                     setSubscriptionTotal(subTotal);
                     setSubscriptionCount(subscriptionsData.length);
+
+                    // Procesar datos históricos por mes
+                    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                    const monthlyTotals: Record<string, { income: number; expense: number }> = {};
+
+                    // Inicializar últimos 12 meses
+                    for (let i = 11; i >= 0; i--) {
+                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                        monthlyTotals[key] = { income: 0, expense: 0 };
+                    }
+
+                    // Sumar transacciones por mes
+                    historicalTxs.forEach((tx: any) => {
+                        const d = new Date(tx.date);
+                        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                        if (monthlyTotals[key]) {
+                            const amt = parseFloat(String(tx.amount_cop)) || 0;
+                            if (tx.type === 'income') monthlyTotals[key].income += amt;
+                            else if (tx.type === 'expense') monthlyTotals[key].expense += amt;
+                        }
+                    });
+
+                    // Convertir a array para el gráfico
+                    const histData = Object.entries(monthlyTotals).map(([key, val]) => {
+                        const [, month] = key.split('-');
+                        return {
+                            month: monthNames[parseInt(month) - 1],
+                            income: val.income,
+                            expense: val.expense
+                        };
+                    });
+                    setHistoricalData(histData);
                 }
             } catch (err: any) {
                 if (err?.name !== 'AbortError') console.error(err);
@@ -228,6 +265,15 @@ export default function DashboardPage() {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* Tendencia Histórica (12 meses) */}
+                <div className="bg-[#12161F] border border-white/10 rounded-xl p-4">
+                    <h3 className="text-white text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <Icons.ChartBar />
+                        Tendencia Últimos 12 Meses
+                    </h3>
+                    <MonthlyTrendChart data={historicalData} />
                 </div>
             </div>
         </AppLayout>

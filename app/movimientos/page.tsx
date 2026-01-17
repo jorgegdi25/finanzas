@@ -21,6 +21,7 @@ import {
     categorySchema,
     CategoryFormData
 } from "@/lib/validations";
+import { exportMovements } from "@/lib/excel-export";
 
 interface Account { id: string; name: string; type: string; currency: string; }
 interface Category { id: string; name: string; type: string; }
@@ -354,6 +355,13 @@ export default function MovimientosPage() {
                         <div className="flex justify-between items-center p-4 border-b border-white/10 bg-black/20 shrink-0">
                             <h2 className="text-white text-sm font-bold uppercase tracking-wider">Últimos Movimientos</h2>
                             <div className="flex gap-2">
+                                <button
+                                    onClick={() => exportMovements(transactions, `movimientos_${new Date().toISOString().split('T')[0]}`)}
+                                    className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-lg transition-all border border-emerald-500/30 flex items-center gap-1"
+                                    disabled={transactions.length === 0}
+                                >
+                                    <Icons.FileText /> Excel
+                                </button>
                                 <button onClick={() => setShowAccountForm(true)} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-400 text-xs font-bold rounded-lg transition-all border border-white/10">+ Cuenta</button>
                                 <button onClick={() => setShowCategoryForm(true)} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-400 text-xs font-bold rounded-lg transition-all border border-white/10">+ Categoría</button>
                             </div>
