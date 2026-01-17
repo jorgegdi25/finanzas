@@ -46,6 +46,9 @@ export const savingSchema = z.object({
     type: z.enum(['cash', 'bank', 'investment', 'crypto']),
     currency: z.enum(['COP', 'USD', 'EUR', 'CRYPTO']),
     is_locked: z.boolean().default(false),
+    goal_name: z.string().max(100).optional().or(z.literal('')),
+    goal_amount: z.coerce.number().positive().optional().nullable(),
+    goal_date: z.string().optional().or(z.literal('')),
 });
 export type SavingFormData = z.infer<typeof savingSchema>;
 

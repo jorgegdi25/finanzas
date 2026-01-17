@@ -23,10 +23,14 @@ interface Saving {
     currency: string;
     is_locked: boolean;
     is_active: boolean;
+    goal_name: string | null;
+    goal_amount: number | null;
+    goal_date: string | null;
 }
 
 interface SavingWithTotal extends Saving {
     total_cop: number;
+    goal_percentage: number;
 }
 
 export default function AhorrosPage() {
@@ -70,7 +74,7 @@ export default function AhorrosPage() {
     async function loadSavings() {
         const { data: savingsData } = await supabase
             .from("savings")
-            .select("id, name, type, currency, is_locked, is_active")
+            .select("id, name, type, currency, is_locked, is_active, goal_name, goal_amount, goal_date")
             .eq("is_active", true)
             .order("name");
 
@@ -82,7 +86,9 @@ export default function AhorrosPage() {
             const movements = (movementsData || []).filter((m) => m.saving_id === saving.id);
             const deposits = movements.filter((m) => m.direction === "deposit").reduce((sum, m) => sum + (parseFloat(m.amount_cop) || 0), 0);
             const withdrawals = movements.filter((m) => m.direction === "withdraw").reduce((sum, m) => sum + (parseFloat(m.amount_cop) || 0), 0);
-            return { ...saving, total_cop: deposits - withdrawals };
+            const total_cop = deposits - withdrawals;
+            const goal_percentage = saving.goal_amount ? (total_cop / saving.goal_amount) * 100 : 0;
+            return { ...saving, total_cop, goal_percentage };
         });
 
         setSavings(savingsWithTotals);
@@ -95,6 +101,9 @@ export default function AhorrosPage() {
             type: data.type,
             currency: data.currency,
             is_locked: data.is_locked,
+            goal_name: data.goal_name?.trim() || null,
+            goal_amount: data.goal_amount || null,
+            goal_date: data.goal_date || null,
         });
 
         if (error) {
@@ -175,12 +184,53 @@ export default function AhorrosPage() {
                                 <span className="text-zinc-600 font-mono text-xs">{saving.currency}</span>
                             </div>
 
-                            <div className="mb-5">
+                            <div className="mb-4">
                                 <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-1">Saldo Actual</p>
                                 <p className={`text-2xl font-black font-mono tracking-tight ${saving.total_cop >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                                     ${saving.total_cop.toLocaleString("es-CO")}
                                 </p>
                             </div>
+
+                            {/* Meta de Ahorro */}
+                            {saving.goal_amount && (
+                                <div className="mb-4 p-3 bg-black/20 rounded-lg border border-white/5">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <p className="text-[#3ED6D8] text-xs font-bold">
+                                            🎯 {saving.goal_name || 'Meta'}
+                                        </p>
+                                        <span className={`text-xs font-bold px-2 py-0.5 rounded ${saving.goal_percentage >= 100 ? 'bg-emerald-500/20 text-emerald-400' :
+                                            saving.goal_percentage >= 75 ? 'bg-amber-500/20 text-amber-400' :
+                                                'bg-white/10 text-zinc-400'
+                                            }`}>
+                                            {saving.goal_percentage.toFixed(0)}%
+                                        </span>
+                                    </div>
+                                    <div className="h-2 bg-black/30 rounded-full overflow-hidden mb-2">
+                                        <div
+                                            className={`h-full transition-all duration-500 ${saving.goal_percentage >= 100 ? 'bg-emerald-500' :
+                                                saving.goal_percentage >= 75 ? 'bg-amber-500' :
+                                                    'bg-[#3ED6D8]'
+                                                }`}
+                                            style={{ width: `${Math.min(saving.goal_percentage, 100)}%` }}
+                                        />
+                                    </div>
+                                    <div className="flex justify-between text-xs">
+                                        <span className="text-zinc-500">
+                                            Meta: ${saving.goal_amount.toLocaleString("es-CO")}
+                                        </span>
+                                        {saving.goal_date && (
+                                            <span className="text-zinc-600">
+                                                📅 {new Date(saving.goal_date).toLocaleDateString("es-CO")}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {saving.goal_percentage >= 100 && (
+                                        <p className="text-emerald-400 text-xs mt-2 flex items-center gap-1">
+                                            🎉 ¡Meta alcanzada!
+                                        </p>
+                                    )}
+                                </div>
+                            )}
 
                             <div className="flex gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
                                 <Link href={`/ahorros/${saving.id}`} className="flex-1">
@@ -251,6 +301,32 @@ export default function AhorrosPage() {
                             <span className="block text-zinc-500 text-xs">Marcar como 'Intocable' para evitar gastos impulsivos.</span>
                         </div>
                     </label>
+
+                    {/* Sección de Meta */}
+                    <div className="space-y-4 p-4 bg-[#3ED6D8]/5 rounded-lg border border-[#3ED6D8]/20">
+                        <p className="text-[#3ED6D8] text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                            🎯 Meta de Ahorro (Opcional)
+                        </p>
+                        <Input
+                            label="Nombre de la meta"
+                            placeholder="Ej: Viaje a Europa, Carro nuevo..."
+                            {...register("goal_name")}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input
+                                label="Monto objetivo"
+                                type="number"
+                                placeholder="0"
+                                {...register("goal_amount")}
+                            />
+                            <Input
+                                label="Fecha objetivo"
+                                type="date"
+                                {...register("goal_date")}
+                            />
+                        </div>
+                    </div>
+
                     <Button type="submit" className="w-full" isLoading={isSubmitting}>Crear Ahorro</Button>
                 </form>
             </Modal>
