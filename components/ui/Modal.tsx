@@ -31,16 +31,22 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
             <div
                 className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
             <div
-                className={`relative w-full ${sizes[size]} bg-[#1B1F27] border border-[#2A2F3A] rounded-3xl shadow-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200`}
+                className={`relative w-full ${sizes[size]} bg-[#1B1F27] border border-[#2A2F3A] 
+                    rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col 
+                    max-h-[85vh] sm:max-h-[90vh] sm:m-4
+                    animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200`}
             >
-                <div className="flex items-center justify-between p-6 border-b border-[#2A2F3A]">
-                    {title && <h2 className="text-xl font-bold text-white">{title}</h2>}
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-[#2A2F3A] shrink-0">
+                    {/* Drag handle for mobile */}
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-zinc-600 rounded-full sm:hidden" />
+                    {title && <h2 className="text-lg sm:text-xl font-bold text-white mt-2 sm:mt-0">{title}</h2>}
                     <button
                         onClick={onClose}
                         className="text-zinc-500 hover:text-white transition-colors p-2 rounded-full hover:bg-zinc-800"
@@ -48,7 +54,8 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
                         ✕
                     </button>
                 </div>
-                <div className="p-6 overflow-y-auto">
+                {/* Content */}
+                <div className="p-4 sm:p-6 overflow-y-auto flex-1 pb-8 sm:pb-6">
                     {children}
                 </div>
             </div>

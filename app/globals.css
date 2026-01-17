@@ -16,4 +16,37 @@ body {
   /* Removed fixed background to allow utility classes to take effect */
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  /* Enable smooth scrolling and safe areas for iOS */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe area padding for mobile devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Add extra padding to account for browser navigation */
+  .mobile-safe-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 5rem);
+  }
+}
+
+/* Custom scrollbar for better mobile experience */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
 }
