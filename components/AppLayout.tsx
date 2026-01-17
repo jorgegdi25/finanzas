@@ -12,6 +12,7 @@ const navItems = [
     { label: 'Movimientos', icon: <Icons.Calendar />, href: '/movimientos' },
     { label: 'Deudas', icon: <Icons.DollarCircle />, href: '/deudas' },
     { label: 'Suscripciones', icon: <Icons.Repeat />, href: '/suscripciones' },
+    { label: 'Presupuestos', icon: <Icons.ChartBar />, href: '/presupuestos' },
     { label: 'Cuentas', icon: <Icons.CreditCard />, href: '/cuentas' },
     { label: 'Ahorros', icon: <Icons.PiggyBank />, href: '/ahorros' },
     { label: 'Simulador', icon: <Icons.Calculator />, href: '/simulador' },
