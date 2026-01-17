@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Modal } from "@/components/ui/Modal";
 import { AppLayout } from "@/components/AppLayout";
+import { Icons } from "@/components/Icons";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import {
     movementSchema,
@@ -263,13 +264,13 @@ export default function MovimientosPage() {
                         <div className="flex justify-between items-center mb-5">
                             <h2 className="text-white text-sm font-bold uppercase tracking-wider">Nuevo Movimiento</h2>
                             <div className="flex gap-2">
-                                <button onClick={() => setShowAccountForm(true)} className="p-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-xs rounded-lg transition-all border border-white/10" title="Nueva Cuenta">
-                                    <span className="hidden sm:inline">+ Cuenta</span>
-                                    <span className="sm:hidden">💳</span>
+                                <button onClick={() => setShowAccountForm(true)} className="p-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-xs rounded-lg transition-all border border-white/10 flex items-center gap-1" title="Nueva Cuenta">
+                                    <Icons.CreditCard />
+                                    <span className="hidden sm:inline">Cuenta</span>
                                 </button>
-                                <button onClick={() => setShowCategoryForm(true)} className="p-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-xs rounded-lg transition-all border border-white/10" title="Nueva Categoría">
-                                    <span className="hidden sm:inline">+ Categoría</span>
-                                    <span className="sm:hidden">🏷️</span>
+                                <button onClick={() => setShowCategoryForm(true)} className="p-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-xs rounded-lg transition-all border border-white/10 flex items-center gap-1" title="Nueva Categoría">
+                                    <Icons.Plus />
+                                    <span className="hidden sm:inline">Categoría</span>
                                 </button>
                             </div>
                         </div>
